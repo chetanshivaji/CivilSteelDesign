@@ -32,18 +32,51 @@ def footing(xF, xInch, yF, yInch,spacingInchX,spacingInchY, barSize, foldingLeng
     
 def column(partition, barSize,numberOfBars, numberColumns):
     #print("column calculation start")
-    totalLen = (numberOfBars*(40/partition))/40*numberColumns
-    totalLenInFeet = totalLen*12
+    totalLenInFeet = (numberOfBars*(40/partition))*numberColumns
     return totalLenInFeet
     
-def columnRings(partition,spacing, x, y,barSize, numberOfBars, numberColumns):
+def columnRings(internalRingsSpacing, partition, spacing, x, y,barSize, numberOfBars, numberColumns):
     #print("column calculation start")
-    singleRingPerimeter = 2*(x-2)+2*(y-2)+2 #2 is folding
+    x= x-2
+    y= y-2
+    #External column rings.
+    singleRingPerimeter = 2*(x)+2*(y)+2 #2 is folding
     length = 40/partition
     numRings = (length*12)/spacing+1
-    return (singleRingPerimeter*numRings)/12   #returning in feet    
+    ringsInFeet =  (singleRingPerimeter*numRings)/12*numberColumns   #returning in feet 
+    
+    
+    #internal column rings.
+    if(numberOfBars==8):
+        a = max(x,y)
+        b = min(x,y)
+        a = a/3
+        singleRingPerimeter = 2*(a)+2*(b)+2 #2 is folding
+        length = 40/partition
+        numRings = (length*12)/internalRingsSpacing+1
+        ringsInFeet =  ringsInFeet + (singleRingPerimeter*numRings)/12*numberColumns   #returning in feet 
+        
+    if(numberOfBars==10):
+        a = max(x,y)
+        b = min(x,y)
+        a = a/4
+        singleRingPerimeter = (2*(a)+2*(b)+2) #2 is folding
+        doubleRingPerimeter   = singleRingPerimeter*2
+        length = 40/partition
+        numRings = (length*12)/internalRingsSpacing+1
+        ringsInFeet = ringsInFeet + (doubleRingPerimeter*numRings)/12*numberColumns   #returning in feet 
+        
+    if(numberOfBars==6):
+        a = max(x,y)
+        b = min(x,y)
+        singleRingPerimeter = b+2 #2 is folding
+        length = 40/partition
+        numRings = (length*12)/internalRingsSpacing+1
+        ringsInFeet = ringsInFeet + (doubleRingPerimeter*numRings)/12*numberColumns   #returning in feet    
+        
+    return ringsInFeet
 
-def beamRings(spacing, x, y, barSize, length,numberBeams, numberColumns=1):
+def beamRings(spacing, x, y, barSize, length,numberBeams):
     #print("column calculation start")
     singleRingPerimeter = 2*(x-2)+2*(y-2)+2 #2 is folding
     numRings = math.ceil((length*12)/spacing)+1
@@ -177,7 +210,7 @@ def main():
             foldingLength=int(lines['foldingLength'])
             numberColumns=int(lines['numberColumns']) 
             if(barSize in footignBarType.keys()):
-                footignBarType[barSize] = footignBarType[barSize] + footignBarType[barSize]+footing(xF, xInch, yF, yInch,spacingInchX,spacingInchY, barSize, foldingLength, numberColumns)
+                footignBarType[barSize] = footignBarType[barSize] + footing(xF, xInch, yF, yInch,spacingInchX,spacingInchY, barSize, foldingLength, numberColumns)
             else:
                 footignBarType[barSize] = footing(xF, xInch, yF, yInch,spacingInchX,spacingInchY, barSize, foldingLength, numberColumns)        
                             
@@ -202,16 +235,17 @@ def main():
         for lines in csvFile: 
             partition=int(lines['partition'])
             barSize= int(lines['barSize'])
-            numberOfBars =int(lines['numberOfBars']) 
             numberColumns = int(lines['numberColumns'])     
             spacing = int(lines['spacing']) 
             x= int(lines['x'])
             y= int(lines['y'])
+            numberOfBars = int(lines['numberOfBars'])         
+            internalRingsSpacing = int(lines['internalRingsSpacing']) 
                          
             if(barSize in mBarsRings.keys()):     
-                mBarsRings[barSize] = mBarsRings[barSize] + columnRings(partition,spacing, x, y,barSize, numberOfBars, numberColumns)
+                mBarsRings[barSize] = mBarsRings[barSize] + columnRings(internalRingsSpacing,partition,spacing, x, y,barSize,numberOfBars, numberColumns)
             else:
-                mBarsRings[barSize] = columnRings(partition,spacing, x, y,barSize, numberOfBars, numberColumns)
+                mBarsRings[barSize] = columnRings(internalRingsSpacing,partition,spacing, x, y,barSize,numberOfBars, numberColumns)
                 
     #print("starting beam")
     
@@ -244,9 +278,9 @@ def main():
                  numberBeams)
             
             if(ringBarSize in beamRingsDir.keys()):     
-                beamRingsDir[ringBarSize] = beamRingsDir[ringBarSize] + beamRings(spacing, x, y, ringBarSize, bottomStraightLen)
+                beamRingsDir[ringBarSize] = beamRingsDir[ringBarSize] + beamRings(spacing, x, y, ringBarSize, bottomStraightLen,numberBeams)
             else:
-                beamRingsDir[ringBarSize] = beamRings(spacing, x, y, ringBarSize, bottomStraightLen)
+                beamRingsDir[ringBarSize] = beamRings(spacing, x, y, ringBarSize, bottomStraightLen,numberBeams)
             
             
     #display output
