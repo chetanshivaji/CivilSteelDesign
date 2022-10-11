@@ -1,3 +1,5 @@
 sr,ringBarSize,numberBeams,spacing,x,y,bottomStraightCount,bottomStraightLen,bottomStraightBarSize,bottomCurtailCount,bottomCurtailBarSize,topStraightCount,topStraightBarSize,topLeftCount,topLeftBarSize,topRightCount,topRightBarSize
-1,8,6,6,9,15,2,10,12,1,12,2,12,1,12,1,12
-1,8,6,6,9,15,2,10,12,1,12,2,12,1,12,1,12
+1,8,3,6,9,15,2,15,12,1,12,2,10,1,10,1,10
+2,8,3,6,9,15,2,15,12,1,12,2,10,1,10,1,10
+3,8,4,6,9,15,2,14,12,1,12,2,10,1,10,1,10
+4,8,4,6,9,15,2,14,12,1,12,2,10,1,10,1,10
