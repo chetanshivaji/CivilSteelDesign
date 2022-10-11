@@ -10,6 +10,8 @@ mBars = {}
 mBarsRings = {}
 barsTotalInFeet = {}
 barsWeight={}
+beamLenDir = {}
+beamRingsDir = {}
 
 def footing(xF, xInch, yF, yInch,spacingInchX,spacingInchY, barSize, foldingLength, numberColumns):
     #print("footing calculation start")
@@ -40,11 +42,55 @@ def columnRings(partition,spacing, x, y,barSize, numberOfBars, numberColumns):
     length = 40/partition
     numRings = (length*12)/spacing+1
     return (singleRingPerimeter*numRings)/12   #returning in feet    
-    
-    
-def beam():
-    print("beam calculation start")
 
+def beamRings(spacing, x, y, barSize, length,numberBeams, numberColumns=1):
+    #print("column calculation start")
+    singleRingPerimeter = 2*(x-2)+2*(y-2)+2 #2 is folding
+    numRings = math.ceil((length*12)/spacing)+1
+    return (singleRingPerimeter*numRings)/12*numberBeams   #returning in feet    
+    
+    
+    
+def beam(bottomStraightCount, bottomStraightLen, bottomStraightBarSize,
+         bottomCurtailCount, bottomCurtailBarSize, 
+         topStraightCount, topStraightBarSize, 
+         topLeftCount, topLeftBarSize,
+         topRightCount, topRightBarSize,
+         numberBeams):
+    
+    print("beam calculation start")
+    bottomStraight = bottomStraightCount * bottomStraightLen *numberBeams
+    bottomCurtail = bottomCurtailCount * bottomStraightLen/2 *numberBeams
+    topStraight = topStraightCount * bottomStraightLen * numberBeams
+    topCurtailLeft= topLeftCount * bottomStraightLen/4 * numberBeams
+    topCurtailRight = topRightCount * bottomStraightLen/4 * numberBeams
+    
+    if(bottomStraightBarSize in beamLenDir.keys()):
+        beamLenDir[bottomStraightBarSize] = beamLenDir[bottomStraightBarSize] + bottomStraight 
+    else:
+        beamLenDir[bottomStraightBarSize] = bottomStraight 
+    
+    if(bottomCurtailBarSize in beamLenDir.keys()):
+        beamLenDir[bottomCurtailBarSize] = beamLenDir[bottomCurtailBarSize] + bottomCurtail 
+    else:
+        beamLenDir[bottomCurtailBarSize] = bottomCurtail 
+    
+    if(topStraightBarSize in beamLenDir.keys()):
+        beamLenDir[topStraightBarSize] = beamLenDir[topStraightBarSize] + topStraight 
+    else:
+        beamLenDir[topStraightBarSize] = topStraight     
+    
+    if(topLeftBarSize in beamLenDir.keys()):
+        beamLenDir[topLeftBarSize] = beamLenDir[topLeftBarSize] + topCurtailLeft 
+    else:
+        beamLenDir[topLeftBarSize] = topCurtailLeft                 
+
+    if(topRightBarSize in beamLenDir.keys()):
+        beamLenDir[topRightBarSize] = beamLenDir[topRightBarSize] + topCurtailRight 
+    else:
+        beamLenDir[topRightBarSize] = topCurtailRight                 
+        
+    
 def display():
     print("printing footing bar type details->")
     for x,y in footignBarType.items():
@@ -70,6 +116,27 @@ def display():
     print("\n")
     print("printing bar RINGS details->")
     for x,y in mBarsRings.items():
+        print(x,y)
+        if x in barsTotalInFeet.keys():
+            barsTotalInFeet[x] = barsTotalInFeet[x]+y
+        else:
+            barsTotalInFeet[x] = y            
+           
+    print("\n")
+    print("\n")
+    print("printing bar BEAM details->")
+    for x,y in beamLenDir.items():
+        print(x,y)
+        if x in barsTotalInFeet.keys():
+            barsTotalInFeet[x] = barsTotalInFeet[x]+y
+        else:
+            barsTotalInFeet[x] = y  
+
+
+    print("\n")
+    print("\n")
+    print("printing BEAM RINGS details->")
+    for x,y in beamRingsDir.items():
         print(x,y)
         if x in barsTotalInFeet.keys():
             barsTotalInFeet[x] = barsTotalInFeet[x]+y
@@ -148,10 +215,42 @@ def main():
                 
     #print("starting beam")
     
-    display()
-    #beam()
+    with open('inputBeam.csv', mode ='r') as file: 
+        csvFile = csv.DictReader(file)
+        for lines in csvFile: 
+            bottomStraightCount = int(lines['bottomStraightCount'])
+            bottomStraightLen = int(lines['bottomStraightLen'])
+            bottomStraightBarSize = int(lines['bottomStraightBarSize'])
+            bottomCurtailCount = int(lines['bottomCurtailCount'])
+           
+            bottomCurtailBarSize = int(lines['bottomCurtailBarSize'])
+            topStraightCount = int(lines['topStraightCount'])
+            topStraightBarSize = int(lines['topStraightBarSize'])
+            topLeftCount = int(lines['topLeftCount'])
+            topLeftBarSize = int(lines['topLeftBarSize'])
+            topRightCount = int(lines['topRightCount'])
+            topRightBarSize = int(lines['topRightBarSize'])
+            ringBarSize = int(lines['ringBarSize'])
+            spacing = int(lines['spacing']) 
+            x= int(lines['x'])
+            y= int(lines['y'])
+            numberBeams = int(lines['numberBeams'])
+            
+            beam(bottomStraightCount, bottomStraightLen, bottomStraightBarSize, 
+                 bottomCurtailCount, bottomCurtailBarSize, 
+                 topStraightCount, topStraightBarSize, 
+                 topLeftCount, topLeftBarSize,
+                 topRightCount, topRightBarSize,
+                 numberBeams)
+            
+            if(ringBarSize in beamRingsDir.keys()):     
+                beamRingsDir[ringBarSize] = beamRingsDir[ringBarSize] + beamRings(spacing, x, y, ringBarSize, bottomStraightLen)
+            else:
+                beamRingsDir[ringBarSize] = beamRings(spacing, x, y, ringBarSize, bottomStraightLen)
+            
+            
     #display output
-    
+    display()
 
 if __name__ == "__main__":
     main()
